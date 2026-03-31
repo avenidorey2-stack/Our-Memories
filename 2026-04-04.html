@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Memories Album 💖</title>
+<link rel="stylesheet" href="Untitled-1.css">
+</head>
+
+<body>
+
+<!-- 🔐 PASSWORD LOCK -->
+<div id="lockScreen">
+    <h2>Enter Password 💖</h2>
+
+    <!-- FORM = Enter key works automatically -->
+    <form id="loginForm">
+        <input type="password" id="passwordInput" placeholder="Enter password">
+        <br>
+        <button type="submit">Enter</button>
+    </form>
+</div>
+
+<header>
+    <h1>Our Memories Album 💖</h1>
+</header>
+
+<div class="upload-box">
+    <input type="file" id="fileInput" multiple accept="image/*">
+    <br>
+    <input type="text" id="captionInput" placeholder="Write a caption...">
+    <button onclick="startSlideshow()">▶ Slideshow</button>
+</div>
+
+<div class="gallery" id="gallery"></div>
+
+<div class="modal" id="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <img id="modalImg">
+    <p id="modalCaption" style="color:white"></p>
+</div>
+
+<script>
+const PASSWORD = "030424"; // 🔐 change this
+
+const fileInput = document.getElementById("fileInput");
+const gallery = document.getElementById("gallery");
+const modal = document.getElementById("modal");
+
+/* 🔐 LOGIN WITH ENTER KEY */
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // stop refresh
+    unlock();
+});
+
+function unlock() {
+    const input = document.getElementById("passwordInput").value;
+
+    if (input === PASSWORD) {
+        document.getElementById("lockScreen").style.display = "none";
+    } else {
+        alert("Wrong password!");
+    }
+}
+
+/* 📸 LOAD */
+window.onload = () => {
+    loadPhotos();
+    createHearts();
+};
+
+/* 📸 UPLOAD + AUTO SAVE */
+fileInput.addEventListener("change", function() {
+    const caption = document.getElementById("captionInput").value || "No caption";
+
+    for (let file of this.files) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            addPhoto(e.target.result, caption);
+            savePhotos();
+        };
+
+        reader.readAsDataURL(file);
+    }
+});
+
+function addPhoto(src, caption) {
+    const div = document.createElement("div");
+    div.className = "photo";
+
+    const img = document.createElement("img");
+    img.src = src;
+
+    img.onclick = () => openModal(src, caption);
+
+    const cap = document.createElement("p");
+    cap.textContent = caption;
+
+    div.appendChild(img);
+    div.appendChild(cap);
+    gallery.appendChild(div);
+}
+
+/* 🖼 MODAL */
+function openModal(src, caption) {
+    modal.classList.add("show");
+    modalImg.src = src;
+    modalCaption.textContent = caption;
+}
+
+function closeModal() {
+    modal.classList.remove("show");
+}
+
+/* 💾 STORAGE */
+function savePhotos() {
+    const photos = [];
+    document.querySelectorAll(".photo").forEach(p => {
+        photos.push({
+            src: p.querySelector("img").src,
+            caption: p.querySelector("p").textContent
+        });
+    });
+    localStorage.setItem("album", JSON.stringify(photos));
+}
+
+function loadPhotos() {
+    const saved = JSON.parse(localStorage.getItem("album")) || [];
+    saved.forEach(p => addPhoto(p.src, p.caption));
+}
+
+/* 🎞 SLIDESHOW */
+function startSlideshow() {
+    const photos = document.querySelectorAll(".photo img");
+    if (photos.length === 0) return alert("No photos!");
+
+    let i = 0;
+    modal.classList.add("show");
+
+    const slide = setInterval(() => {
+        modalImg.src = photos[i].src;
+        modalCaption.textContent = photos[i].nextElementSibling.textContent;
+        i++;
+        if (i >= photos.length) i = 0;
+    }, 2000);
+
+    modal.onclick = () => {
+        clearInterval(slide);
+        closeModal();
+    };
+}
+
+/* 💖 HEARTS */
+function createHearts() {
+    setInterval(() => {
+        const heart = document.createElement("div");
+        heart.className = "heart";
+        heart.textContent = "💖";
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.fontSize = (Math.random() * 20 + 10) + "px";
+
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 3000);
+    }, 800);
+}
+</script>
+
+</body>
+</html>
